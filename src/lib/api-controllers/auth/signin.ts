@@ -3,6 +3,7 @@ import { compare } from 'bcryptjs'
 
 import { config } from 'config'
 import { UserModel } from 'lib/db/models/User'
+import 'lib/db/models/Role'
 import { generateTokens } from 'lib/utils/generateTokens'
 
 const { HTTP: { STATUS_CODE } } = config
