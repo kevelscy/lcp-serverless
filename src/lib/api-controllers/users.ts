@@ -38,8 +38,6 @@ export const getUserById = async (req: NextApiRequest, res: NextApiResponse) => 
 }
 
 export const createUser = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('createUser')
-
   try {
     const userCreated = await new Promise<any>((resolve, reject) => {
       const form = new IncomingForm()
