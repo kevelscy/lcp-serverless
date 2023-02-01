@@ -26,6 +26,8 @@ export const getAllPosts = async (req: NextApiRequest, res: NextApiResponse) => 
 
 export const getPostById = async (req: NextApiRequest, res: NextApiResponse) => {
   const postId = req.query.id as string
+  console.log('postId', postId)
+
   const postFinded = await PostModel.findById(postId).populate({
     path: 'author',
     populate: {
@@ -33,6 +35,8 @@ export const getPostById = async (req: NextApiRequest, res: NextApiResponse) => 
       model: 'User'
     }
   }).exec()
+
+  console.log('postFinded', postFinded)
 
   if (!postFinded) {
     return res.status(STATUS_CODE.NOT_FOUND).json({

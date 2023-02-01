@@ -33,7 +33,7 @@ export const signIn = async (req: NextApiRequest, res: NextApiResponse) => {
   } else {
 
     const { accessToken, refreshToken } = await generateTokens(userFounded)
-    const userPopulated = await userFounded.populate('roles')
+    const userPopulated = await userFounded.populate('roles') // TODO Remove of populated data USERS from Roles[]
 
     return res.status(200).json({
       data: {

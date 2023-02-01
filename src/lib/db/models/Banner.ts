@@ -9,6 +9,11 @@ const bannerSchema = new Schema<IBannerSchema>({
     maxlength: [150, 'title cannot be grater than 150 characters'],
     unique: true
   },
+  type: {
+    type: String,
+    required: true,
+    enum: ['MOBILE', 'DESKTOP']
+  },
   image: {
     publicId: {
       type: String,

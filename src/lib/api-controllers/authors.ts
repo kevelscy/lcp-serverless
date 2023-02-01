@@ -8,10 +8,10 @@ import { config } from 'config'
 const { HTTP: { STATUS_CODE } } = config
 
 export const getAuthors = async (req: NextApiRequest, res: NextApiResponse) => {
-  const allUsers = await AuthorModel.find().populate('user')
+  const allAuthors = await AuthorModel.find().populate('user')
 
   return res.status(200).json({
-    data: allUsers,
+    data: allAuthors,
     error: null
   })
 }

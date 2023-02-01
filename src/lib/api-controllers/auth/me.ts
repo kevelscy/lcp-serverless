@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 
 import { config } from 'config'
 import { UserModel } from 'lib/db/models/User'
+import 'lib/db/models/Role'
 
 const { JWT, HTTP: { STATUS_CODE } } = config
 

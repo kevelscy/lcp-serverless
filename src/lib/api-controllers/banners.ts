@@ -45,10 +45,10 @@ export const createBanner = async (req: NextApiRequest, res: NextApiResponse) =>
           error: 'CREATE_BANNER_FORMIDABLE_PARSE'
         })
 
-        const { title } = fields
+        const { title, type } = fields
         const image = files?.image as any || null
       
-        if (!title || !image) {
+        if (!title || !image || !type) {
           return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
             .json({ data: null, error: 'FIELDS_REQUIRED' })
         }
@@ -57,6 +57,7 @@ export const createBanner = async (req: NextApiRequest, res: NextApiResponse) =>
       
         const bannerCreated = await BannerModel.create({
           title,
+          type,
           image: {
             publicId: imageUploaded.public_id,
             url: imageUploaded.secure_url,
