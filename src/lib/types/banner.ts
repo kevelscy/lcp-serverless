@@ -3,12 +3,19 @@ import { Types } from 'mongoose'
 export interface IBannerSchema {
   id: Types.ObjectId
   title?: string
-  type: 'MOBILE' | 'DESKTOP'
   image: {
-    publicId: string
-    url: string
-    height: number
-    width: number
+    mobile: {
+      publicId: string
+      url: string
+      height: number
+      width: number
+    }
+    desktop: {
+      publicId: string
+      url: string
+      height: number
+      width: number
+    }
   }
   createdAt: Date
   updatedAt: Date

@@ -5,6 +5,7 @@ import { uploadResource, deleteResourceByPublicId } from 'lib/services/cloudinar
 import { BannerModel } from 'lib/db/models/Banner'
 
 import { config } from 'config'
+import { slugify } from 'lib/utils/slugify'
 
 const { HTTP: { STATUS_CODE } } = config
 
@@ -45,24 +46,42 @@ export const createBanner = async (req: NextApiRequest, res: NextApiResponse) =>
           error: 'CREATE_BANNER_FORMIDABLE_PARSE'
         })
 
-        const { title, type } = fields
-        const image = files?.image as any || null
+        const { title } = fields
+        const imageMobile = files?.imageMobile as any || null
+        const imageDesktop = files?.imageDesktop as any || null
       
-        if (!title || !image || !type) {
+        if (!title || !imageMobile || !imageDesktop) {
           return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
             .json({ data: null, error: 'FIELDS_REQUIRED' })
         }
-      
-        const imageUploaded = await uploadResource({ filePath: image?.tempFilePath, folderPath: 'banners' })
+
+        const imageMobileUploaded = await uploadResource({
+          publicId: slugify(`${title}-mobile`),
+          filePath: imageMobile?.filepath,
+          folderPath: 'banners'
+        })
+
+        const imageDesktopUploaded = await uploadResource({
+          publicId: slugify(`${title}-desktop`),
+          filePath: imageDesktop?.filepath,
+          folderPath: 'banners',
+        })
       
         const bannerCreated = await BannerModel.create({
           title,
-          type,
           image: {
-            publicId: imageUploaded.public_id,
-            url: imageUploaded.secure_url,
-            width: imageUploaded.width,
-            height: imageUploaded.height
+            mobile: {
+              publicId: imageMobileUploaded.public_id,
+              url: imageMobileUploaded.secure_url,
+              width: imageMobileUploaded.width,
+              height: imageMobileUploaded.height
+            },
+            desktop: {
+              publicId: imageDesktopUploaded.public_id,
+              url: imageDesktopUploaded.secure_url,
+              width: imageDesktopUploaded.width,
+              height: imageDesktopUploaded.height
+            }
           }
         })
       
@@ -105,7 +124,8 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
 
         const { title } = fields
         const bannerId = req.query.id
-        const image = files?.image as any || null
+        const imageMobile = files?.imageMobile as any || null
+        const imageDesktop = files?.imageDesktop as any || null
       
         const bannerFinded = await BannerModel.findById(bannerId).exec()
       
@@ -115,19 +135,28 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
             error: 'NOT_FOUND'
           })
         }
-      
-        const imageUploaded = image ? await uploadResource({ filePath: image?.tempFilePath, folderPath: 'banners' }) : null
+
+        const imageMobileUploaded = imageMobile ? await uploadResource({ filePath: imageMobile?.tempFilePath, folderPath: 'banners' }) : null
+        const imageDesktopUploaded = imageDesktop ? await uploadResource({ filePath: imageDesktop?.tempFilePath, folderPath: 'banners' }) : null
 
         // remove temp local image file
-        // imageUploaded && await fs.unlink(image?.tempFilePath)
+        // imageMobileUploaded && await fs.unlink(image?.tempFilePath)
       
         const bannerToUpdate = {
           title: title || bannerFinded.title,
           image: {
-            publicId: imageUploaded ? imageUploaded.public_id : bannerFinded.image.publicId,
-            url: imageUploaded ? imageUploaded.secure_url : bannerFinded.image.url,
-            width: imageUploaded ? imageUploaded.width : bannerFinded.image.width,
-            height: imageUploaded ? imageUploaded.height : bannerFinded.image.height
+            mobile: {
+              publicId: imageMobileUploaded ? imageMobileUploaded.public_id : bannerFinded.image.mobile.publicId,
+              url: imageMobileUploaded ? imageMobileUploaded.secure_url : bannerFinded.image.mobile.url,
+              width: imageMobileUploaded ? imageMobileUploaded.width : bannerFinded.image.mobile.width,
+              height: imageMobileUploaded ? imageMobileUploaded.height : bannerFinded.image.mobile.height
+            },
+            desktop: {
+              publicId: imageDesktopUploaded ? imageDesktopUploaded.public_id : bannerFinded.image.desktop.publicId,
+              url: imageDesktopUploaded ? imageDesktopUploaded.secure_url : bannerFinded.image.desktop.url,
+              width: imageDesktopUploaded ? imageDesktopUploaded.width : bannerFinded.image.desktop.width,
+              height: imageDesktopUploaded ? imageDesktopUploaded.height : bannerFinded.image.desktop.height
+            }
           }
         }
       
@@ -140,15 +169,29 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
           })
         }
       
-        if (imageUploaded) {
-          // Delete old image banner
-          const { result } = await deleteResourceByPublicId(bannerFinded.image.publicId)
+        if (imageMobileUploaded) {
+          // Delete old image mobile banner from cloudinary
+          const { result } = await deleteResourceByPublicId(bannerFinded.image.mobile.publicId)
       
           if (result !== 'ok') {
       
             return res.status(500).json({
               data: null,
-              error: 'ERROR_TO_DELETE_AFTER_IMAGE_OF_BANNER'
+              error: 'ERROR_TO_DELETE_AFTER_IMAGE_MOBILE_OF_BANNER'
+            })
+      
+          }
+        }
+
+        if (imageDesktopUploaded) {
+          // Delete old image desktop banner from cloudinary
+          const { result } = await deleteResourceByPublicId(bannerFinded.image.desktop.publicId)
+      
+          if (result !== 'ok') {
+      
+            return res.status(500).json({
+              data: null,
+              error: 'ERROR_TO_DELETE_AFTER_IMAGE_DESKTOP_OF_BANNER'
             })
       
           }
@@ -182,10 +225,15 @@ export const deleteBannerById = async (req: NextApiRequest, res: NextApiResponse
     })
   }
 
-  const { result } = await deleteResourceByPublicId(bannerDeleted.image.publicId)
+  const { result: resultMobile } = await deleteResourceByPublicId(bannerDeleted.image.mobile.publicId)
+  const { result: resultDesktop } = await deleteResourceByPublicId(bannerDeleted.image.desktop.publicId)
 
-  if (result !== 'ok') {
-    console.error('user picture failed to delete')    
+  if (resultMobile !== 'ok') {
+    console.error('banner mobile failed to delete')    
+  }
+
+  if (resultDesktop !== 'ok') {
+    console.error('banner desktop failed to delete')    
   }
 
   return res.status(200).json({

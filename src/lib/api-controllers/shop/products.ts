@@ -6,7 +6,6 @@ import { ProductCategoryModel } from 'lib/db/models/ProductCategory'
 import { ProductModel } from 'lib/db/models/Product'
 
 import { config } from 'config'
-import { Types } from 'mongoose'
 
 const { HTTP: { STATUS_CODE } } = config
 
