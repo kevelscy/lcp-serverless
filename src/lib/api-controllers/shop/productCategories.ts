@@ -97,7 +97,6 @@ export const updateProductCategoryById = async (req: NextApiRequest, res: NextAp
 
 export const pushProductToCategory = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-
     const productCategoryId = req.query.id
     const { productId } = req.body
 
@@ -139,22 +138,18 @@ export const pushProductToCategory = async (req: NextApiRequest, res: NextApiRes
       data: productCategoryUpdated,
       error: null
     })
-
   } catch (err) {
-
     console.log('pushProductToCategory err', err)
 
     return res.status(STATUS_CODE.SERVER_ERROR).json({
       data: null,
       error: `SERVER_ERROR - ${err.message}`
     })
-
   }
 }
 
 export const removeProductOfCategory = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-
     const productCategoryId = req.query.id
     const { productId } = req.body
 
@@ -199,16 +194,13 @@ export const removeProductOfCategory = async (req: NextApiRequest, res: NextApiR
       data: productCategoryUpdated,
       error: null
     })
-
   } catch (err) {
-
     console.log('pushProductToCategory err', err)
 
     return res.status(STATUS_CODE.SERVER_ERROR).json({
       data: null,
       error: `SERVER_ERROR - ${err.message}`
     })
-
   }
 }
 

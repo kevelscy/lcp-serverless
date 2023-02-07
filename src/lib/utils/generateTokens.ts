@@ -7,7 +7,6 @@ import { config } from 'config'
 
 export const generateTokens = async (user: IUserSchema) => {
   try {
-
     const payload = { id: user.id, roles: user.roles }
     const accessToken = jwt.sign(
       payload,
@@ -27,10 +26,7 @@ export const generateTokens = async (user: IUserSchema) => {
     await new UserTokenModel({ userId: user.id, token: refreshToken }).save()
 
     return Promise.resolve({ accessToken, refreshToken })
-
   } catch (err) {
-
     return Promise.reject(err)
-
   }
 }

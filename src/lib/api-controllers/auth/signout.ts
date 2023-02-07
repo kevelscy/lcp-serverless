@@ -31,7 +31,6 @@ export const signOut = async (req: NextApiRequest, res: NextApiResponse) => {
       data: 'LOGGED_OUT',
       error: null
     })
-
   } catch (err) {
     console.log(err)
     return res.status(500).json({ data: null, error: 'Internal Server Error' })

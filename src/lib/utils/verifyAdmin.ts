@@ -26,8 +26,7 @@ export const verifyAdmin = (req: NextApiRequest, res: NextApiResponse) => {
       data: null,
       error: 'USER_FORBIDDEN'
     })
-
   }
 
-  return tokenDecoded.isAdmin 
+  return tokenDecoded.isAdmin
 }

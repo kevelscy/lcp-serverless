@@ -5,7 +5,7 @@ import { onError, onNoMatch } from 'lib/api-controllers/common'
 import { uploadImageDesktopOfBannerById } from 'lib/api-controllers/banners'
 
 export const config = {
-  api: { bodyParser: false}
+  api: { bodyParser: false }
 }
 
 const handler = nextConnect({ onError, onNoMatch })

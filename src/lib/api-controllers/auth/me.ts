@@ -27,7 +27,6 @@ export const getAuthMe = async (req: NextApiRequest, res: NextApiResponse) => {
 
   jwt.verify(accessToken, JWT.ACCESS_SECRET, async (err, user: IUserAuthVerified) => {
     if (err) {
-
       return res.status(403).json({
         data: null,
         error: 'TOKEN_NOT_VALIDATED'

@@ -18,7 +18,6 @@ interface IUploadFile {
 
 export const uploadFile = async ({ pathFile, title, ext, root }: IUploadFile): TUploadFile => {
   try {
-
     const resBucket = await firebaseBucket.upload(
       pathFile,
       {
@@ -36,16 +35,13 @@ export const uploadFile = async ({ pathFile, title, ext, root }: IUploadFile): T
       },
       error: null
     }
-
   } catch (err) {
-
     console.error('uploadFile err', err)
 
     return {
       data: null,
       error: `uploadFile Error - ${err?.message}`
     }
-
   }
 }
 
@@ -53,7 +49,6 @@ type TDeleteFile = Promise<{ data: boolean | null, error: string | null }>
 
 export const deleteFileById = async (id: string): TDeleteFile => {
   try {
-
     const resBucket = await firebaseBucket.file(id).delete()
 
     console.log('resBucket', resBucket[0].statusCode)
@@ -62,15 +57,12 @@ export const deleteFileById = async (id: string): TDeleteFile => {
       data: resBucket[0].statusCode <= 399,
       error: null
     }
-
   } catch (err) {
-
     console.error('uploadFile err', err)
 
     return {
       data: null,
       error: `uploadFile Error - ${err?.message}`
     }
-
   }
 }

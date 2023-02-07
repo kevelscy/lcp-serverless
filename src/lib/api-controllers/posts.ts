@@ -57,30 +57,32 @@ export const createPost = async (req: NextApiRequest, res: NextApiResponse) => {
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_POST_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_POST_FORMIDABLE_PARSE'
+          })
+        }
 
         const { title, authorId, slug, content, type, category, published } = fields
         const image = files?.image as any || null
-      
+
         if (!title || !authorId || !slug || !image || !content || !type || !category) {
           return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
             .json({ data: null, error: 'FIELDS_REQUIRED' })
         }
-      
+
         const authorFinded = await AuthorModel.findById(authorId).exec()
-      
+
         if (!authorFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
             error: 'AUTHOR_NOT_EXISTS'
           })
         }
-      
+
         const imageUploaded = await uploadResource({ filePath: image?.tempFilePath, folderPath: 'posts' })
-      
+
         const postToCreate = {
           title,
           slug,
@@ -96,21 +98,21 @@ export const createPost = async (req: NextApiRequest, res: NextApiResponse) => {
             height: imageUploaded.height
           }
         }
-      
+
         const postCreated = await PostModel.create(postToCreate)
-      
+
         if (!postCreated) {
           return res.status(STATUS_CODE.CONFLICT_TO_CREATE_THIS_RESOURCE).json({
             data: null,
             error: 'CONFLICT_TO_CREATE_THIS_RESOURCE'
           })
         }
-      
+
         await authorFinded.updateOne({ $push: { posts: postCreated.id } })
-      
+
         // remove temp local image file
         // await fs.unlink(image?.tempFilePath)
-      
+
         return resolve(postCreated)
       })
     })
@@ -119,7 +121,6 @@ export const createPost = async (req: NextApiRequest, res: NextApiResponse) => {
       data: postCreated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -134,17 +135,19 @@ export const updatePostById = async (req: NextApiRequest, res: NextApiResponse) 
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_POST_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_POST_FORMIDABLE_PARSE'
+          })
+        }
 
         const postId = req.query.id
         const image = files?.image as any || null
         const { title, authorId, slug, content, type, category, published } = fields
-      
+
         const postFinded = await PostModel.findById(postId).exec()
-      
+
         if (!postFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
@@ -174,7 +177,7 @@ export const updatePostById = async (req: NextApiRequest, res: NextApiResponse) 
         }
 
         const postUpdated = await postFinded.updateOne(postToUpdate)
-      
+
         if (!postUpdated) {
           return res.status(STATUS_CODE.CONFLICT_TO_EDIT_THIS_RESOURCE).json({
             data: null,
@@ -190,7 +193,6 @@ export const updatePostById = async (req: NextApiRequest, res: NextApiResponse) 
       data: postUpdated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -213,7 +215,7 @@ export const deletePostById = async (req: NextApiRequest, res: NextApiResponse) 
   const { result } = await deleteResourceByPublicId(postDeleted.image.publicId)
 
   if (result !== 'ok') {
-    console.error('user picture failed to delete')    
+    console.error('user picture failed to delete')
   }
 
   const authorFinded = await AuthorModel.findById(postDeleted.author).exec()

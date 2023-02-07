@@ -53,44 +53,46 @@ export const createDevotional = async (req: NextApiRequest, res: NextApiResponse
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_DEVOTIONAL_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_DEVOTIONAL_FORMIDABLE_PARSE'
+          })
+        }
 
         const { title, authorId } = fields
         const file = files?.file as any || null
-    
+
         if (!title || !file || !authorId) {
           return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
             .json({ data: null, error: 'FIELDS_REQUIRED' })
         }
-    
+
         const devotionalFinded = await DevotionalModel.findOne({ title })
-    
+
         if (devotionalFinded) {
           return res.status(STATUS_CODE.RESOURCE_ALREADY_EXIST).json({
             data: null,
             error: 'RESOURCE_ALREADY_EXIST'
           })
         }
-    
+
         const authorFinded = await AuthorModel.findById(authorId).exec()
-    
+
         if (!authorFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
             error: 'AUTHOR_NOT_EXISTS'
           })
         }
-    
+
         const { data: fileUploaded, error: fileError } = await uploadFile({
           pathFile: file?.tempFilePath,
           root: 'devotionals',
           ext: '.pdf',
           title: title as string
         })
-    
+
         if (fileError) {
           return res.status(STATUS_CODE.CONFLICT_TO_CREATE_THIS_RESOURCE).json({
             data: null,
@@ -108,16 +110,16 @@ export const createDevotional = async (req: NextApiRequest, res: NextApiResponse
             url: fileUploaded.url
           }
         })
-    
+
         if (!devotionalCreated) {
           return res.status(STATUS_CODE.CONFLICT_TO_CREATE_THIS_RESOURCE).json({
             data: null,
             error: 'CONFLICT_TO_CREATE_THIS_RESOURCE'
           })
         }
-    
+
         await authorFinded.updateOne({ $push: { devotionals: devotionalCreated.id } })
-    
+
         // remove temp local image file
         // await fs.unlink(file?.tempFilePath)
 
@@ -137,7 +139,6 @@ export const createDevotional = async (req: NextApiRequest, res: NextApiResponse
       data: devotionalCreated,
       error: null
     })
-
   } catch (err) {
     return res.status(STATUS_CODE.SERVER_ERROR).json({
       data: null,
@@ -152,17 +153,19 @@ export const updateDevotionalById = async (req: NextApiRequest, res: NextApiResp
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_DEVOTIONAL_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_DEVOTIONAL_FORMIDABLE_PARSE'
+          })
+        }
 
         const { title } = fields
         const devotionalId = req.query.id
         const file = files?.file as any || null
-      
+
         const devotionalFinded = await DevotionalModel.findById(devotionalId).exec()
-      
+
         if (!devotionalFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
@@ -222,7 +225,6 @@ export const updateDevotionalById = async (req: NextApiRequest, res: NextApiResp
       data: devotionalToUpdate,
       error: null
     })
-    
   } catch (err) {
     return res.status(500).json({
       data: null,

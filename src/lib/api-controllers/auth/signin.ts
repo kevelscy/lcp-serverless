@@ -26,12 +26,9 @@ export const signIn = async (req: NextApiRequest, res: NextApiResponse) => {
   const isVerified = await compare(password, userFounded.password)
 
   if (!isVerified) {
-
     return res.status(STATUS_CODE.INCORRECT_CREDENTIALS)
       .json({ data: null, error: 'INCORRECT_CREDENTIALS' })
-
   } else {
-
     const { accessToken, refreshToken } = await generateTokens(userFounded)
     const userPopulated = await userFounded.populate('roles') // TODO Remove of populated data USERS from Roles[]
 

@@ -42,10 +42,12 @@ export const createBanner = async (req: NextApiRequest, res: NextApiResponse) =>
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_BANNER_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_BANNER_FORMIDABLE_PARSE'
+          })
+        }
 
         const { title } = fields
 
@@ -87,7 +89,6 @@ export const createBanner = async (req: NextApiRequest, res: NextApiResponse) =>
       data: bannerCreated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -107,7 +108,7 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
 
     const bannerId = req.query.id
     const bannerFinded = await BannerModel.findById(bannerId)
-  
+
     if (!bannerFinded) {
       return res.status(STATUS_CODE.NOT_FOUND).json({
         data: null,
@@ -116,7 +117,7 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
     }
 
     const bannerUpdated = await bannerFinded.updateOne({ title })
-  
+
     if (!bannerUpdated.modifiedCount) {
       return res.status(STATUS_CODE.CONFLICT_TO_EDIT_THIS_RESOURCE).json({
         data: null,
@@ -128,7 +129,6 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
       data: bannerUpdated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -145,10 +145,12 @@ export const uploadImageMobileOfBannerById = async (req: NextApiRequest, res: Ne
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
+          })
+        }
 
         const image = files?.image as any || null
 
@@ -158,7 +160,7 @@ export const uploadImageMobileOfBannerById = async (req: NextApiRequest, res: Ne
         }
 
         const bannerFinded = await BannerModel.findById(bannerId)
-        
+
         if (!bannerFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
@@ -203,21 +205,20 @@ export const uploadImageMobileOfBannerById = async (req: NextApiRequest, res: Ne
 
         if (bannerFinded.image?.mobile?.publicId) { // delete old image mobile
           const { result: resultMobile } = await deleteResourceByPublicId(bannerFinded.image.mobile.publicId)
-  
+
           if (resultMobile !== 'ok') {
-            console.error('banner mobile failed to delete')    
+            console.error('banner mobile failed to delete')
           }
         }
 
         return resolve(bannerUpdated)
       })
     })
-  
+
     return res.status(200).json({
       data: bannerWithImageMobileUploaded,
       error: null
     })
-    
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -234,10 +235,12 @@ export const uploadImageDesktopOfBannerById = async (req: NextApiRequest, res: N
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
+          })
+        }
 
         const image = files?.image as any || null
 
@@ -292,21 +295,20 @@ export const uploadImageDesktopOfBannerById = async (req: NextApiRequest, res: N
 
         if (bannerFinded.image?.desktop?.publicId) { // delete old image mobile
           const { result: resultDesktop } = await deleteResourceByPublicId(bannerFinded.image?.desktop?.publicId)
-  
+
           if (resultDesktop !== 'ok') {
-            console.error('banner desktop failed to delete')    
+            console.error('banner desktop failed to delete')
           }
         }
 
         return resolve(bannerUpdated)
       })
     })
-  
+
     return res.status(200).json({
       data: bannerWithImageDesktopUploaded,
       error: null
     })
-    
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -330,7 +332,7 @@ export const deleteBannerById = async (req: NextApiRequest, res: NextApiResponse
     const { result: resultMobile } = await deleteResourceByPublicId(bannerDeleted.image.mobile.publicId)
 
     if (resultMobile !== 'ok') {
-      console.error('banner mobile failed to delete')    
+      console.error('banner mobile failed to delete')
     }
   }
 
@@ -338,7 +340,7 @@ export const deleteBannerById = async (req: NextApiRequest, res: NextApiResponse
     const { result: resultDesktop } = await deleteResourceByPublicId(bannerDeleted.image.desktop.publicId)
 
     if (resultDesktop !== 'ok') {
-      console.error('banner desktop failed to delete')    
+      console.error('banner desktop failed to delete')
     }
   }
 

@@ -20,5 +20,4 @@ if (!admin.apps.length) {
   })
 }
 
-
 export const firebaseBucket = getStorage().bucket()

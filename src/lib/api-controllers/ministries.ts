@@ -41,14 +41,16 @@ export const createMinistry = async (req: NextApiRequest, res: NextApiResponse) 
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_MINISTRY_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_MINISTRY_FORMIDABLE_PARSE'
+          })
+        }
 
         const coverImage = files?.coverImage as any || null
         const { title, label, slug, description, leaderId, membersId } = fields
-      
+
         if (!title || !label || !description || !leaderId || !membersId || !slug || !coverImage) {
           return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
             .json({ data: null, error: 'FIELDS_REQUIRED' })
@@ -73,7 +75,7 @@ export const createMinistry = async (req: NextApiRequest, res: NextApiResponse) 
             height: coverImageUploaded.height
           }
         })
-      
+
         if (!ministryCreated) {
           return res.status(STATUS_CODE.CONFLICT_TO_CREATE_THIS_RESOURCE).json({
             data: null,
@@ -89,7 +91,6 @@ export const createMinistry = async (req: NextApiRequest, res: NextApiResponse) 
       data: ministryCreated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -104,29 +105,31 @@ export const updateMinistryById = async (req: NextApiRequest, res: NextApiRespon
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_MINISTRY_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_MINISTRY_FORMIDABLE_PARSE'
+          })
+        }
 
         const ministryId = req.query.id as string
         const { title, label, slug, description, leaderId, membersId } = req.body
         const coverImage = files?.coverImage as any || null
-      
+
         const ministryFinded = await MinistryModel.findById(ministryId).exec()
-      
+
         if (!ministryFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
             error: 'NOT_FOUND'
           })
         }
-      
+
         const coverImageUploaded = coverImage ? await uploadResource({ filePath: coverImage?.tempFilePath, folderPath: 'ministries' }) : null
-      
+
         // remove temp local image file
         // coverImageUploaded && await fs.unlink(coverImage?.tempFilePath)
-      
+
         const ministryUpdated = await MinistryModel.findByIdAndUpdate(ministryFinded.id, {
           title: title || ministryFinded.title,
           label: label || ministryFinded.label,
@@ -150,7 +153,6 @@ export const updateMinistryById = async (req: NextApiRequest, res: NextApiRespon
       data: ministryUpdated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -253,7 +255,7 @@ export const deleteMinistryById = async (req: NextApiRequest, res: NextApiRespon
   const { result } = await deleteResourceByPublicId(ministryDeleted.coverImage.publicId)
 
   if (result !== 'ok') {
-    console.error('ministry picture failed to delete')    
+    console.error('ministry picture failed to delete')
   }
 
   return res.status(200).json({

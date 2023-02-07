@@ -43,10 +43,12 @@ export const createUser = async (req: NextApiRequest, res: NextApiResponse) => {
       const form = new IncomingForm()
 
       form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'CREATE_PRODUCT_FORMIDABLE_PARSE'
-        })
+        if (formError) {
+          return res.status(500).json({
+            data: null,
+            error: 'CREATE_PRODUCT_FORMIDABLE_PARSE'
+          })
+        }
 
         const {
           roles,
@@ -128,7 +130,6 @@ export const createUser = async (req: NextApiRequest, res: NextApiResponse) => {
       data: userCreated,
       error: null
     })
-
   } catch (err) {
     return res.status(500).json({
       data: null,
@@ -141,7 +142,7 @@ export const updateUserById = async (req: NextApiRequest, res: NextApiResponse) 
   try {
     const userUpdated = await new Promise<any>((resolve, reject) => {
       const form = new IncomingForm()
-  
+
       form.parse(req, async (formError, fields, files) => {
         if (formError) {
           console.error('formError', formError)
@@ -167,9 +168,9 @@ export const updateUserById = async (req: NextApiRequest, res: NextApiResponse) 
           orders,
           isDeleted
         } = fields
-      
+
         const userFinded = await UserModel.findById(userId).exec()
-      
+
         if (!userFinded) {
           return res.status(STATUS_CODE.NOT_FOUND).json({
             data: null,
@@ -179,12 +180,11 @@ export const updateUserById = async (req: NextApiRequest, res: NextApiResponse) 
 
         const picture = files.picture as any || null
         const pictureUploaded = picture ? await uploadResource({ filePath: picture?.tempFilePath, folderPath: 'users' }) : null
-      
 
         // remove temp local image file
         // pictureUploaded && await fs.unlink(picture?.tempFilePath)
         const passwordHashed = password ? await hash(password as string, 10) : null
-      
+
         const userUpdated = await UserModel.findByIdAndUpdate(userFinded.id, {
           email: email || userFinded.email,
           password: passwordHashed || userFinded.password,
@@ -212,9 +212,9 @@ export const updateUserById = async (req: NextApiRequest, res: NextApiResponse) 
         const { result } = await deleteResourceByPublicId(userUpdated.picture.publicId)
 
         if (result !== 'ok') {
-          console.error('old user picture failed to delete')    
+          console.error('old user picture failed to delete')
         }
-      
+
         return resolve(userUpdated)
       })
     })
@@ -223,9 +223,8 @@ export const updateUserById = async (req: NextApiRequest, res: NextApiResponse) 
       data: userUpdated,
       error: null
     })
-  
   } catch (error) {
-    
+
   }
 }
 
@@ -243,7 +242,7 @@ export const deleteUserById = async (req: NextApiRequest, res: NextApiResponse) 
   const { result } = await deleteResourceByPublicId(userDeleted.picture.publicId)
 
   if (result !== 'ok') {
-    console.error('user picture failed to delete')    
+    console.error('user picture failed to delete')
   }
 
   return res.status(200).json({
