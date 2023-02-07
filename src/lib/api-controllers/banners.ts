@@ -2,11 +2,11 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { IncomingForm } from 'formidable'
 
 import { uploadResource, deleteResourceByPublicId } from 'lib/services/cloudinary'
+import { MongooseUpdateOneReturn } from 'lib/types/api'
 import { BannerModel } from 'lib/db/models/Banner'
+import { slugify } from 'lib/utils/slugify'
 
 import { config } from 'config'
-import { slugify } from 'lib/utils/slugify'
-import { UploadApiResponse } from 'cloudinary'
 
 const { HTTP: { STATUS_CODE } } = config
 
@@ -96,122 +96,6 @@ export const createBanner = async (req: NextApiRequest, res: NextApiResponse) =>
   }
 }
 
-export const uploadImageOfBannerById = async (req: NextApiRequest, res: NextApiResponse) => {
-  const bannerId = req.query.id as string
-
-  try {
-    const bannerCreated = await new Promise<any>((resolve, reject) => {
-      const form = new IncomingForm()
-
-      form.parse(req, async (formError, fields, files) => {
-        if (formError) return res.status(500).json({
-          data: null,
-          error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
-        })
-
-        const { type } = fields as { type: 'mobile' | 'desktop' }
-        const image = files?.image as any || null
-        let imageUploaded: UploadApiResponse
-
-        if (!type || !image) {
-          return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
-            .json({ data: null, error: 'FIELDS_REQUIRED' })
-        }
-
-        const bannerFinded = await BannerModel.findById(bannerId)
-        console.log('bannerFinded', bannerFinded)
-
-        if (!bannerFinded) {
-          return res.status(STATUS_CODE.NOT_FOUND).json({
-            data: null,
-            error: 'BANNER_NOT_FOUND'
-          })
-        }
-
-        if (type === 'mobile') {
-          console.log('upload mobile')
-          const publicId = slugify(`${bannerFinded.title}-mobile`)
-
-          console.log('publicId', publicId)
-
-          imageUploaded = await uploadResource({
-            publicId,
-            filePath: image?.filepath,
-            folderPath: 'banners'
-          })
-        }
-
-        if (type === 'desktop') {
-          console.log('upload desktop')
-          const publicId = slugify(`${bannerFinded.title}-mobile`)
-
-          imageUploaded = await uploadResource({
-            publicId,
-            filePath: image?.filepath,
-            folderPath: 'banners',
-          })
-        }
-
-        const bannerToUpdate = {
-          title: bannerFinded.title,
-          image: {
-            mobile: {
-              publicId: type === 'mobile' ? imageUploaded.public_id : bannerFinded.image.mobile.publicId,
-              url: type === 'mobile' ? imageUploaded.secure_url : bannerFinded.image.mobile.url,
-              width: type === 'mobile' ? imageUploaded.width : bannerFinded.image.mobile.width,
-              height: type === 'mobile' ? imageUploaded.height : bannerFinded.image.mobile.height
-            },
-            desktop: {
-              publicId: type === 'desktop' ? imageUploaded.public_id : bannerFinded.image.desktop.publicId,
-              url: type === 'desktop' ? imageUploaded.secure_url : bannerFinded.image.desktop.url,
-              width: type === 'desktop' ? imageUploaded.width : bannerFinded.image.desktop.width,
-              height: type === 'desktop' ? imageUploaded.height : bannerFinded.image.desktop.height
-            }
-          }
-        }
-
-        const bannerUpdated = await bannerFinded.updateOne(bannerToUpdate)
-      
-        if (!bannerUpdated.modifiedCount) {
-          return res.status(STATUS_CODE.CONFLICT_TO_EDIT_THIS_RESOURCE).json({
-            data: null,
-            error: 'CONFLICT_TO_EDIT_THIS_RESOURCE'
-          })
-        }
-
-        if (type === 'mobile') {
-          const { result: resultMobile } = await deleteResourceByPublicId(bannerFinded.image.mobile.publicId)
-  
-          if (resultMobile !== 'ok') {
-            console.error('banner mobile failed to delete')    
-          }
-        }
-
-        if (type === 'mobile') {
-          const { result: resultDesktop } = await deleteResourceByPublicId(bannerFinded.image.desktop.publicId)
-  
-          if (resultDesktop !== 'ok') {
-            console.error('banner desktop failed to delete')    
-          }
-        }
-
-        return resolve(bannerUpdated)
-      })
-    })
-  
-    return res.status(200).json({
-      data: bannerCreated,
-      error: null
-    })
-    
-  } catch (err) {
-    return res.status(500).json({
-      data: null,
-      error: `CREATE_BANNER - ${err}`
-    })
-  }
-}
-
 export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { title } = req.body
@@ -253,6 +137,184 @@ export const updateBannerById = async (req: NextApiRequest, res: NextApiResponse
   }
 }
 
+export const uploadImageMobileOfBannerById = async (req: NextApiRequest, res: NextApiResponse) => {
+  const bannerId = req.query.id as string
+
+  try {
+    const bannerWithImageMobileUploaded = await new Promise<any>((resolve, reject) => {
+      const form = new IncomingForm()
+
+      form.parse(req, async (formError, fields, files) => {
+        if (formError) return res.status(500).json({
+          data: null,
+          error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
+        })
+
+        const image = files?.image as any || null
+
+        if (!image) {
+          return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
+            .json({ data: null, error: 'IMAGE_REQUIRED' })
+        }
+
+        const bannerFinded = await BannerModel.findById(bannerId)
+        
+        if (!bannerFinded) {
+          return res.status(STATUS_CODE.NOT_FOUND).json({
+            data: null,
+            error: 'BANNER_NOT_FOUND'
+          })
+        }
+
+        const publicId = slugify(`${bannerFinded.title}-mobile`)
+
+        const imageMobileUploaded = await uploadResource({
+          publicId,
+          filePath: image?.filepath,
+          folderPath: 'banners'
+        })
+
+        const bannerToUpdate = {
+          title: bannerFinded.title,
+          image: {
+            mobile: {
+              publicId: imageMobileUploaded.public_id,
+              url: imageMobileUploaded.secure_url,
+              width: imageMobileUploaded.width,
+              height: imageMobileUploaded.height
+            },
+            desktop: {
+              publicId: bannerFinded.image.desktop.publicId,
+              url: bannerFinded.image.desktop.url,
+              width: bannerFinded.image.desktop.width,
+              height: bannerFinded.image.desktop.height
+            }
+          }
+        }
+
+        const bannerUpdated = await bannerFinded.updateOne(bannerToUpdate)
+
+        if (!bannerUpdated.modifiedCount) {
+          return res.status(STATUS_CODE.CONFLICT_TO_EDIT_THIS_RESOURCE).json({
+            data: null,
+            error: 'CONFLICT_TO_EDIT_THIS_RESOURCE'
+          })
+        }
+
+        if (bannerFinded.image?.mobile?.publicId) { // delete old image mobile
+          const { result: resultMobile } = await deleteResourceByPublicId(bannerFinded.image.mobile.publicId)
+  
+          if (resultMobile !== 'ok') {
+            console.error('banner mobile failed to delete')    
+          }
+        }
+
+        return resolve(bannerUpdated)
+      })
+    })
+  
+    return res.status(200).json({
+      data: bannerWithImageMobileUploaded,
+      error: null
+    })
+    
+  } catch (err) {
+    return res.status(500).json({
+      data: null,
+      error: `CREATE_BANNER - ${err}`
+    })
+  }
+}
+
+export const uploadImageDesktopOfBannerById = async (req: NextApiRequest, res: NextApiResponse) => {
+  const bannerId = req.query.id as string
+
+  try {
+    const bannerWithImageDesktopUploaded = await new Promise<any>((resolve, reject) => {
+      const form = new IncomingForm()
+
+      form.parse(req, async (formError, fields, files) => {
+        if (formError) return res.status(500).json({
+          data: null,
+          error: 'UPLOAD_IMAGE_BANNER_FORMIDABLE_PARSE'
+        })
+
+        const image = files?.image as any || null
+
+        if (!image) {
+          return res.status(config.HTTP.STATUS_CODE.FIELDS_REQUIRED)
+            .json({ data: null, error: 'IMAGE_REQUIRED' })
+        }
+
+        const bannerFinded = await BannerModel.findById(bannerId)
+
+        if (!bannerFinded) {
+          return res.status(STATUS_CODE.NOT_FOUND).json({
+            data: null,
+            error: 'BANNER_NOT_FOUND'
+          })
+        }
+
+        const publicId = slugify(`${bannerFinded.title}-desktop`)
+
+        const imageDesktopUploaded = await uploadResource({
+          publicId,
+          filePath: image?.filepath,
+          folderPath: 'banners'
+        })
+
+        const bannerToUpdate = {
+          title: bannerFinded.title,
+          image: {
+            mobile: {
+              publicId: bannerFinded.image.mobile.publicId,
+              url: bannerFinded.image.mobile.url,
+              width: bannerFinded.image.mobile.width,
+              height: bannerFinded.image.mobile.height
+            },
+            desktop: {
+              publicId: imageDesktopUploaded.public_id,
+              url: imageDesktopUploaded.secure_url,
+              width: imageDesktopUploaded.width,
+              height: imageDesktopUploaded.height
+            }
+          }
+        }
+
+        const bannerUpdated: MongooseUpdateOneReturn = await bannerFinded.updateOne(bannerToUpdate)
+
+        if (!bannerUpdated.modifiedCount) {
+          return res.status(STATUS_CODE.CONFLICT_TO_EDIT_THIS_RESOURCE).json({
+            data: null,
+            error: 'CONFLICT_TO_EDIT_THIS_RESOURCE'
+          })
+        }
+
+        if (bannerFinded.image?.desktop?.publicId) { // delete old image mobile
+          const { result: resultDesktop } = await deleteResourceByPublicId(bannerFinded.image?.desktop?.publicId)
+  
+          if (resultDesktop !== 'ok') {
+            console.error('banner desktop failed to delete')    
+          }
+        }
+
+        return resolve(bannerUpdated)
+      })
+    })
+  
+    return res.status(200).json({
+      data: bannerWithImageDesktopUploaded,
+      error: null
+    })
+    
+  } catch (err) {
+    return res.status(500).json({
+      data: null,
+      error: `CREATE_BANNER - ${err}`
+    })
+  }
+}
+
 export const deleteBannerById = async (req: NextApiRequest, res: NextApiResponse) => {
   const bannerId = req.query.id as string
   const bannerDeleted = await BannerModel.findByIdAndDelete(bannerId).exec()
@@ -264,15 +326,20 @@ export const deleteBannerById = async (req: NextApiRequest, res: NextApiResponse
     })
   }
 
-  const { result: resultMobile } = await deleteResourceByPublicId(bannerDeleted.image.mobile.publicId)
-  const { result: resultDesktop } = await deleteResourceByPublicId(bannerDeleted.image.desktop.publicId)
+  if (bannerDeleted.image?.mobile?.publicId) {
+    const { result: resultMobile } = await deleteResourceByPublicId(bannerDeleted.image.mobile.publicId)
 
-  if (resultMobile !== 'ok') {
-    console.error('banner mobile failed to delete')    
+    if (resultMobile !== 'ok') {
+      console.error('banner mobile failed to delete')    
+    }
   }
 
-  if (resultDesktop !== 'ok') {
-    console.error('banner desktop failed to delete')    
+  if (bannerDeleted.image?.desktop?.publicId) {
+    const { result: resultDesktop } = await deleteResourceByPublicId(bannerDeleted.image.desktop.publicId)
+
+    if (resultDesktop !== 'ok') {
+      console.error('banner desktop failed to delete')    
+    }
   }
 
   return res.status(200).json({
