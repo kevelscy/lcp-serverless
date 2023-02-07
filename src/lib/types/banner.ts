@@ -5,16 +5,16 @@ export interface IBannerSchema {
   title?: string
   image: {
     mobile: {
-      publicId: string
-      url: string
-      height: number
-      width: number
+      publicId: string | null
+      url: string | null
+      height: number | null
+      width: number | null
     }
     desktop: {
-      publicId: string
-      url: string
-      height: number
-      width: number
+      publicId: string | null
+      url: string | null
+      height: number | null
+      width: number | null
     }
   }
   createdAt: Date

@@ -13,46 +13,46 @@ const bannerSchema = new Schema<IBannerSchema>({
     mobile: {
       publicId: {
         type: String,
-        required: true,
+        required: false,
         maxlength: [250, 'image publicId cannot be grater than 250 characters']
       },
       url: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
         maxlength: [250, 'image url cannot be grater than 250 characters']
       },
       width: {
         type: Number,
-        required: true,
+        required: false,
         maxlength: [5, 'image width cannot be grater than 5 characters']
       },
       height: {
         type: Number,
-        required: true,
+        required: false,
         maxlength: [5, 'image height cannot be grater than 5 characters']
       }
     },
     desktop: {
       publicId: {
         type: String,
-        required: true,
+        required: false,
         maxlength: [250, 'image publicId cannot be grater than 250 characters']
       },
       url: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
         maxlength: [250, 'image url cannot be grater than 250 characters']
       },
       width: {
         type: Number,
-        required: true,
+        required: false,
         maxlength: [5, 'image width cannot be grater than 5 characters']
       },
       height: {
         type: Number,
-        required: true,
+        required: false,
         maxlength: [5, 'image height cannot be grater than 5 characters']
       }
     }
