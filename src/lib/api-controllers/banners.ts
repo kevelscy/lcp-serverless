@@ -176,6 +176,17 @@ export const uploadImageMobileOfBannerById = async (req: NextApiRequest, res: Ne
           folderPath: 'banners'
         })
 
+        console.log('imageMobileUploaded', imageMobileUploaded)
+
+        if (bannerFinded.image?.mobile?.publicId) { // delete old image mobile
+          console.log('a borar lo viejo')
+          const { result: resultMobile } = await deleteResourceByPublicId(bannerFinded.image.mobile.publicId)
+
+          if (resultMobile !== 'ok') {
+            console.error('banner mobile failed to delete')
+          }
+        }
+
         const bannerToUpdate = {
           title: bannerFinded.title,
           image: {
@@ -203,15 +214,7 @@ export const uploadImageMobileOfBannerById = async (req: NextApiRequest, res: Ne
           })
         }
 
-        if (bannerFinded.image?.mobile?.publicId) { // delete old image mobile
-          const { result: resultMobile } = await deleteResourceByPublicId(bannerFinded.image.mobile.publicId)
-
-          if (resultMobile !== 'ok') {
-            console.error('banner mobile failed to delete')
-          }
-        }
-
-        return resolve(bannerUpdated)
+        return resolve(bannerToUpdate)
       })
     })
 
