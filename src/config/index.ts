@@ -51,7 +51,7 @@ export const config: IConfig = {
     REFRESH_SECRET: process.env.REFRESH_TOKEN_SECRET
   },
   CORS: {
-    PROD: ['https://lcpcaracas.org', 'https://www.lcpcaracas.org'],
+    PROD: ['https://lcpcaracas.org', 'https://www.lcpcaracas.org', 'https://admin.lcpcaracas.org', 'https://www.admin.lcpcaracas.org', 'https://admin-dev.lcpcaracas.org', 'https://www.admin-dev.lcpcaracas.org'],
     DEV: ['http://localhost:3000']
   },
   CLOUDINARY: {
