@@ -1,3 +1,4 @@
+import { getFirestore } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
 const admin = require('firebase-admin')
 
@@ -21,3 +22,4 @@ if (!admin.apps.length) {
 }
 
 export const firebaseBucket = getStorage().bucket()
+export const firebaseStore = getFirestore()
